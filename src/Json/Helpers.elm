@@ -81,9 +81,10 @@ The following Elm type will be used as an example for the different encoding sch
 -}
 
 import Dict exposing (Dict)
-import Json.Decode exposing (Value, field)
+import Json.Decode exposing (Value, errorToString, field)
 import Json.Encode
 import Set exposing (Set)
+import Tuple exposing (second)
 
 
 {-| This is an opaque type that is to be used to give hints when using the `TaggedObject` encoding.
@@ -152,6 +153,7 @@ tuple2 abv da db =
 -- polyfill from https://groups.google.com/d/msg/elm-dev/Ctl_kSKJuYc/7nCM8XETBwAJ
 
 
+customDecoder : Json.Decode.Decoder a -> (a -> Result Json.Decode.Error b) -> Json.Decode.Decoder b
 customDecoder decoder toResult =
     Json.Decode.andThen
         (\a ->
@@ -160,7 +162,7 @@ customDecoder decoder toResult =
                     Json.Decode.succeed b
 
                 Err err ->
-                    Json.Decode.fail err
+                    Json.Decode.fail <| errorToString err
         )
         decoder
 
@@ -175,11 +177,14 @@ decodeSumObjectWithSingleField name mapping =
     customDecoder (Json.Decode.keyValuePairs Json.Decode.value)
         (\lst ->
             case lst of
+                [] ->
+                    Err <| Json.Decode.Failure ("Can't decode " ++ name ++ ": object has too few keys") Json.Encode.null
+
                 [ ( key, value ) ] ->
                     decodeSumFinal name key value mapping
 
-                _ ->
-                    Err ("Can't decode " ++ name ++ ": object has too many keys")
+                kv :: kvs ->
+                    Err <| Json.Decode.Failure ("Can't decode " ++ name ++ ": object has too many keys") (second kv)
         )
 
 
@@ -219,11 +224,11 @@ decodeSumTaggedObject name fieldname contentname mapping objectKeys =
             )
 
 
-decodeSumFinal : String -> String -> Value -> Dict String (Json.Decode.Decoder a) -> Result String a
+decodeSumFinal : String -> String -> Value -> Dict String (Json.Decode.Decoder a) -> Result Json.Decode.Error a
 decodeSumFinal name key value mapping =
     case Dict.get key mapping of
         Nothing ->
-            Err ("Unknown constructor " ++ key ++ " for type " ++ name)
+            Err <| Json.Decode.Failure ("Unknown constructor " ++ key ++ " for type " ++ name) value
 
         Just dec ->
             Json.Decode.decodeValue dec value
@@ -252,7 +257,7 @@ encodeSumTwoElementArray mkkeyval v =
         ( key, val ) =
             mkkeyval v
     in
-    Json.Encode.list [ Json.Encode.string key, oeValue val ]
+    Json.Encode.list identity [ Json.Encode.string key, oeValue val ]
 
 
 {-| Encode objects using the `TaggedObject` scheme.
@@ -343,23 +348,14 @@ decodeMap decKey decVal =
 
 {-| Helper function for encoding map-like objects. It takes an encoder for the key type and an encoder for the value type
 -}
-encodeMap : (comparable -> Json.Encode.Value) -> (v -> Json.Encode.Value) -> Dict comparable v -> Json.Encode.Value
+encodeMap : (comparable -> Value) -> (v -> Json.Encode.Value) -> Dict comparable v -> Json.Encode.Value
 encodeMap encKey encVal =
-    let
-        encKey_ x =
-            case Json.Decode.decodeValue Json.Decode.string (encKey x) of
-                Err _ ->
-                    toString x
-
-                Ok s ->
-                    s
-    in
-    Json.Encode.object << List.map (\( k, v ) -> ( encKey_ k, encVal v )) << Dict.toList
+    Json.Encode.dict (Json.Encode.encode 0 << encKey) encVal
 
 
 {-| An alias to `encodeMap` that is compatible with the naming convention from `elm-bridge`
 -}
-jsonEncDict : (comparable -> Json.Encode.Value) -> (v -> Json.Encode.Value) -> Dict comparable v -> Json.Encode.Value
+jsonEncDict : (comparable -> Value) -> (v -> Json.Encode.Value) -> Dict comparable v -> Json.Encode.Value
 jsonEncDict =
     encodeMap
 
@@ -375,7 +371,7 @@ jsonDecDict =
 -}
 encodeSet : (comparable -> Json.Encode.Value) -> Set comparable -> Json.Encode.Value
 encodeSet e s =
-    Json.Encode.list (List.map e (Set.toList s))
+    Json.Encode.list e (Set.toList s)
 
 
 {-| A helper for set decoding
