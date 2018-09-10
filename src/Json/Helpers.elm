@@ -76,7 +76,7 @@ The following Elm type will be used as an example for the different encoding sch
 
 # Containers helpers
 
-@docs decodeMap, encodeMap, jsonEncDict, jsonDecDict, encodeSet, decodeSet, maybeEncode, (>>=), (:=), encodeSumUntagged
+@docs decodeMap, encodeMap, jsonEncDict, jsonDecDict, encodeSet, decodeSet, maybeEncode, encodeSumUntagged
 
 -}
 
