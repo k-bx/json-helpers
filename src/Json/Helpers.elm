@@ -7,7 +7,7 @@ module Json.Helpers exposing
     , decodeSumNullaries
     , decodeSumNullaryOrSingleField
     , decodeMap, encodeMap, jsonEncDict, jsonDecDict, encodeSet, decodeSet, maybeEncode, encodeSumUntagged
-    , andThen, field
+    , required, custom, fnullable
     )
 
 {-| This module exposes helper functions for encoding sum types and maps. It was designed
@@ -73,6 +73,9 @@ The following Elm type will be used as an example for the different encoding sch
 
 @docs decodeSumNullaryOrSingleField
 
+# Pipeline utils
+
+@docs required, fnullable, custom
 
 # Containers helpers
 
@@ -370,9 +373,7 @@ jsonDecDict =
 {-| A helper for set encoding
 -}
 encodeSet : (comparable -> Json.Encode.Value) -> Set comparable -> Json.Encode.Value
-encodeSet e s =
-    Json.Encode.list e (Set.toList s)
-
+encodeSet = Json.Encode.set
 
 {-| A helper for set decoding
 -}
@@ -381,15 +382,15 @@ decodeSet d =
     Json.Decode.map Set.fromList (Json.Decode.list d)
 
 
-{-| The bind operator, which works like the old \`andThen
--}
-andThen : Json.Decode.Decoder a -> (a -> Json.Decode.Decoder b) -> Json.Decode.Decoder b
-andThen =
-    \b a -> Json.Decode.andThen a b
+{-| Stolen from NoRedInk's module. Decode a required field. -}
+required : String -> Json.Decode.Decoder a -> Json.Decode.Decoder (a -> b) -> Json.Decode.Decoder b
+required key valDecoder decoder = custom (Json.Decode.field key valDecoder) decoder
 
+{-| Decodes a nullable field. -}
+fnullable : String -> Json.Decode.Decoder a -> Json.Decode.Decoder (Maybe a -> b) -> Json.Decode.Decoder b
+fnullable key valDecoder decoder = custom (Json.Decode.nullable (Json.Decode.field key valDecoder)) decoder
 
-{-| This is the old operator from Elm 0.17
--}
-field : String -> Json.Decode.Decoder a -> Json.Decode.Decoder a
-field =
-    Json.Decode.field
+{-| Stolen from NoRedInk's module. Run the given decoder and feed its result into the pipeline at this point. -}
+custom : Json.Decode.Decoder a -> Json.Decode.Decoder (a -> b) -> Json.Decode.Decoder b
+custom = Json.Decode.map2 (|>)
+
