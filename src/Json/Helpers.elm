@@ -8,6 +8,7 @@ module Json.Helpers exposing
     , decodeSumNullaryOrSingleField
     , decodeMap, encodeMap, jsonEncDict, jsonDecDict, encodeSet, decodeSet, maybeEncode, encodeSumUntagged
     , required, custom, fnullable
+    , tuple2, tuple3, tuple4, tuple5, tuple6, tuple7, tuple8
     )
 
 {-| This module exposes helper functions for encoding sum types and maps. It was designed
@@ -81,6 +82,9 @@ The following Elm type will be used as an example for the different encoding sch
 
 @docs decodeMap, encodeMap, jsonEncDict, jsonDecDict, encodeSet, decodeSet, maybeEncode, encodeSumUntagged, andThen, field
 
+# Tuple helpers
+
+@docs tuple2, tuple3, tuple4, tuple5, tuple6, tuple7, tuple8
 -}
 
 import Dict exposing (Dict)
@@ -394,3 +398,17 @@ fnullable key valDecoder decoder = custom (Json.Decode.nullable (Json.Decode.fie
 custom : Json.Decode.Decoder a -> Json.Decode.Decoder (a -> b) -> Json.Decode.Decoder b
 custom = Json.Decode.map2 (|>)
 
+tuple2 : a -> b -> (a,b)
+tuple2 a b = (a,b)
+tuple3 : a -> b -> c -> (a,b,c)
+tuple3 a b c = (a,b,c)
+tuple4 : a -> b -> c -> d -> (a,b,c,d)
+tuple4 a b c d = (a,b,c,d)
+tuple5 : a -> b -> c -> d -> e -> (a,b,c,d,e)
+tuple5 a b c d e = (a,b,c,d,e)
+tuple6 : a -> b -> c -> d -> e -> f -> (a,b,c,d,e,f)
+tuple6 a b c d e f = (a,b,c,d,e,f)
+tuple7 : a -> b -> c -> d -> e -> f -> g -> (a,b,c,d,e,f,g)
+tuple7 a b c d e f g = (a,b,c,d,e,f,g)
+tuple8 : a -> b -> c -> d -> e -> f -> g -> h -> (a,b,c,d,e,f,g,h)
+tuple8 a b c d e f g h = (a,b,c,d,e,f,g,h)
