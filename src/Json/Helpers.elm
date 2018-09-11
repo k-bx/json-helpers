@@ -8,7 +8,7 @@ module Json.Helpers exposing
     , decodeSumNullaryOrSingleField
     , decodeMap, encodeMap, jsonEncDict, jsonDecDict, encodeSet, decodeSet, maybeEncode, encodeSumUntagged
     , required, custom, fnullable
-    , tuple2, tuple3, tuple4, tuple5, tuple6, tuple7, tuple8
+    , tuple2, tuple3
     )
 
 {-| This module exposes helper functions for encoding sum types and maps. It was designed
@@ -151,8 +151,8 @@ resmapM f lst =
 -- polyfill
 
 
-tuple2 : (a -> b -> value) -> Json.Decode.Decoder a -> Json.Decode.Decoder b -> Json.Decode.Decoder value
-tuple2 abv da db =
+jtuple2 : (a -> b -> value) -> Json.Decode.Decoder a -> Json.Decode.Decoder b -> Json.Decode.Decoder value
+jtuple2 abv da db =
     Json.Decode.map2 abv (Json.Decode.index 0 da) (Json.Decode.index 1 db)
 
 
@@ -202,7 +202,7 @@ are decoders for each case.
 -}
 decodeSumTwoElemArray : String -> Dict String (Json.Decode.Decoder a) -> Json.Decode.Decoder a
 decodeSumTwoElemArray name mapping =
-    customDecoder (tuple2 (\a b -> ( a, b )) Json.Decode.string Json.Decode.value) (\( key, value ) -> decodeSumFinal name key value mapping)
+    customDecoder (jtuple2 (\a b -> ( a, b )) Json.Decode.string Json.Decode.value) (\( key, value ) -> decodeSumFinal name key value mapping)
 
 
 {-| Decode objects encoded using the `TaggedObject` scheme.
@@ -402,13 +402,3 @@ tuple2 : a -> b -> (a,b)
 tuple2 a b = (a,b)
 tuple3 : a -> b -> c -> (a,b,c)
 tuple3 a b c = (a,b,c)
-tuple4 : a -> b -> c -> d -> (a,b,c,d)
-tuple4 a b c d = (a,b,c,d)
-tuple5 : a -> b -> c -> d -> e -> (a,b,c,d,e)
-tuple5 a b c d e = (a,b,c,d,e)
-tuple6 : a -> b -> c -> d -> e -> f -> (a,b,c,d,e,f)
-tuple6 a b c d e f = (a,b,c,d,e,f)
-tuple7 : a -> b -> c -> d -> e -> f -> g -> (a,b,c,d,e,f,g)
-tuple7 a b c d e f g = (a,b,c,d,e,f,g)
-tuple8 : a -> b -> c -> d -> e -> f -> g -> h -> (a,b,c,d,e,f,g,h)
-tuple8 a b c d e f g h = (a,b,c,d,e,f,g,h)
