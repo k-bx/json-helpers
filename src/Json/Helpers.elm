@@ -80,11 +80,11 @@ The following Elm type will be used as an example for the different encoding sch
 
 # Containers helpers
 
-@docs decodeMap, encodeMap, jsonEncDict, jsonDecDict, encodeSet, decodeSet, maybeEncode, encodeSumUntagged, andThen, field
+@docs decodeMap, encodeMap, jsonEncDict, jsonDecDict, encodeSet, decodeSet, maybeEncode, encodeSumUntagged
 
 # Tuple helpers
 
-@docs tuple2, tuple3, tuple4, tuple5, tuple6, tuple7, tuple8
+@docs tuple2, tuple3
 -}
 
 import Dict exposing (Dict)
@@ -398,7 +398,9 @@ fnullable key valDecoder decoder = custom (Json.Decode.nullable (Json.Decode.fie
 custom : Json.Decode.Decoder a -> Json.Decode.Decoder (a -> b) -> Json.Decode.Decoder b
 custom = Json.Decode.map2 (|>)
 
+{-| The (,) operator -}
 tuple2 : a -> b -> (a,b)
 tuple2 a b = (a,b)
+{-| The (,,) operator -}
 tuple3 : a -> b -> c -> (a,b,c)
 tuple3 a b c = (a,b,c)
