@@ -392,7 +392,7 @@ required key valDecoder decoder = custom (Json.Decode.field key valDecoder) deco
 
 {-| Decodes a nullable field. -}
 fnullable : String -> Json.Decode.Decoder a -> Json.Decode.Decoder (Maybe a -> b) -> Json.Decode.Decoder b
-fnullable key valDecoder decoder = custom (Json.Decode.nullable (Json.Decode.field key valDecoder)) decoder
+fnullable key valDecoder decoder = custom (Json.Decode.field key (Json.Decode.nullable valDecoder)) decoder
 
 {-| Stolen from NoRedInk's module. Run the given decoder and feed its result into the pipeline at this point. -}
 custom : Json.Decode.Decoder a -> Json.Decode.Decoder (a -> b) -> Json.Decode.Decoder b
